@@ -57,12 +57,21 @@
  
  
  
- <div class="content bg-[url('assets/images/bg.svg')]">
+ <div class="content">
+    <!-- background: the current slide's image, fades between slides -->
+    <div class="backdrop" aria-hidden="true">
+      @for (slide of slides; track slide.src; let i = $index) {
+        <img [src]="slide.src" alt="" [class.is-active]="currentSlideIndex === i" />
+      }
+    </div>
+
     <div class="slider_view">
  
        <div class="content_text">
  
+          @for (key of [currentSlideIndex]; track key) {
             <span class="lower_text">
+              <span class="reveal reveal-up">
                 <h6 class="location">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C8.134 2 5 5.134 5 8.5c0 2.403 2.053 4.933 4.004 7.7l1.056 1.328c.557.692 1.91.692 2.467 0l1.056-1.328C16.947 13.433 19 10.903 19 8.5 19 5.134 15.866 2 12 2zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/>
@@ -70,9 +79,11 @@
                     <span>{{ slides[currentSlideIndex]?.location }}</span>
                   </h6>
                   <h2 class="title">{{ slides[currentSlideIndex]?.title }}</h2>
+              </span>
             </span>
             <div class="separted_line"></div>
             <span class="upper_text">
+              <span class="reveal reveal-down">
                 <p class="view_describtion">{{ slides[currentSlideIndex]?.description }}</p>
                 <button class="btn primary-btn col-span-3">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,8 +92,9 @@
                     </svg>
                     <span>تابع القراءة</span>
                 </button>
+              </span>
             </span>
-          
+          }
 
        </div>
        
@@ -97,25 +109,24 @@
        
     </div>
  
-    <div class="slider_content">
-       <div
-         class="column"
-         *ngFor="let slide of slides; let i = index"
-         (click)="goToSlide(i)"
-       >
-        <div class="slider_content_image">
-            <img
-            class="demo cursor full-img"
-            [src]="slide.thumbnail"
-            [alt]="slide.alt"
-            [class.active]="currentSlideIndex === i" />
-            <div class="color_filter">
-                <img class=" cursor full-img" [src]="slide.thumbnail" />
+    <div class="slider_content swiper" #thumbsSwiper>
+      <div class="swiper-wrapper">
+        @for (slide of slides; track slide.src; let i = $index) {
+          <div class="column swiper-slide" (click)="goToSlide(i)">
+            <div class="slider_content_image">
+              <img
+                class="demo cursor full-img"
+                [src]="slide.thumbnail"
+                [alt]="slide.alt"
+                [class.active]="currentSlideIndex === i" />
+              <div class="color_filter" (animationend)="onThumbnailAnimationEnd(i)">
+                <img class="cursor full-img" [src]="slide.thumbnail" alt="" />
+              </div>
             </div>
-        </div>
-        <h3 class="slider_content_title">{{ slides[i]?.alt }}</h3>
-         
-       </div>
+            <h3 class="slider_content_title">{{ slide.alt }}</h3>
+          </div>
+        }
+      </div>
     </div>
  </div>
  

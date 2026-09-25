@@ -2,39 +2,101 @@
     display: block;
   }
   .content  {
-    padding: 0px 8vw;
+    padding: clamp(24px, 5vw, 64px) clamp(16px, 8vw, 140px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    gap: 6vw;
+    gap: clamp(32px, 6vw, 80px);
+    position: relative;
+    isolation: isolate; /* keeps the backdrop behind the content only */
+    overflow: hidden;
+}
+
+/* background = current slide image, clearly visible */
+.backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+.backdrop img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+.backdrop img.is-active {
+    opacity: 1;
+}
+.backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* light only behind the text (right side), so the image stays clear */
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.1));
 }
 .slider_view {
     display: flex;
-    gap: 10vw;
+    align-items: center;
+    gap: clamp(32px, 8vw, 140px);
     width: 100%;
 }
 .slider_view_img {
-    width: calc((100% - 10vw)/2);
-    max-height: 400px;
+    flex: 1;
+    /* the box takes the image's shape, so the blue frame matches it */
+    align-self: center;
+    aspect-ratio: 16 / 10;
     position: relative;
-
 }
 .content_text {
-    width: calc((100% - 10vw)/2);
+    flex: 1;
+    min-width: 0;
     position: relative;
     text-align: start;
     display: flex;
     flex-direction: column;
     align-items: start;
-    gap: clamp(10px, 5%, 60px);
+    gap: clamp(12px, 2vw, 24px);
 }
 .upper_text , .lower_text {
+  display: block;
+  width: 100%;
+  /* clip the text so it looks like it is coming out from the separator line */
+  overflow: hidden;
+  padding-block: 6px;
+}
+.reveal {
   display: flex;
   flex-direction: column;
   align-items: start;
-  gap: clamp(10px, 5%, 60px);
+  gap: clamp(10px, 1.5vw, 20px);
+  animation-duration: 1.8s;
+  animation-timing-function: cubic-bezier(0.25, 0.8, 0.3, 1);
+  animation-fill-mode: both;
+}
+/* text above the line rises up from under it */
+.reveal-up {
+  animation-name: reveal-up;
+}
+/* text below the line drops down from it */
+.reveal-down {
+  animation-name: reveal-down;
+  animation-delay: 0.3s;
+}
+@keyframes reveal-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes reveal-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; }
 }
 .slider_view_img::after {
     content: " ";
@@ -47,6 +109,9 @@
     height: 100%;
     width: 100%;
 }
+.mySlides {
+    height: 100%;
+}
 .slider_view_img img {
     object-fit: cover;
     width: 100%;
@@ -58,7 +123,7 @@
 }
 .location {
     color: #202020c9;
-    font-size: 14px;
+    font-size: clamp(12px, 0.4vw + 10px, 14px);
     font-weight: 400;
     display: flex;
     align-items: center;
@@ -70,8 +135,9 @@
 }
 .title {
     color: var(--black);
-    font-size: 36px;
+    font-size: clamp(22px, 1.6vw + 12px, 36px);
     font-weight: 700;
+    line-height: 1.4;
 }
 .separted_line {
     height: 1px;
@@ -92,24 +158,37 @@
 }
 .view_describtion {
   color: var(--black);
-  font-size: 18px;
+  font-size: clamp(14px, 0.5vw + 11px, 18px);
   font-weight: 700;
+  line-height: 1.8;
   opacity: 0.7;
 }
 .btn {
   display: flex;
-  padding: 11px 24px;
+  padding: clamp(8px, 0.6vw, 11px) clamp(16px, 1.6vw, 24px);
   justify-content: center;
   align-items: center;
   gap: 10px;
   border-radius: 41px;
   width: max-content;
-  font-size: 16px;
+  font-size: clamp(14px, 0.3vw + 12px, 16px);
   font-weight: 700;
 }
 .primary-btn {
   border: 1px solid var(--primary-color);
   color: var(--primary-color);
+}
+
+/* mobile & small tablets: text and image under each other */
+@media (max-width: 768px) {
+  .slider_view {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .slider_view_img {
+    order: -1; /* image first, then the text */
+    margin-right: 10px; /* the image is shifted 10px to the right, keep it inside the screen */
+  }
 }
 
 
@@ -128,35 +207,6 @@
   cursor: pointer;
 }
 
-/* Next & previous buttons */
-.prev,
-.next {
-  cursor: pointer;
-  position: absolute;
-  top: 40%;
-  width: auto;
-  padding: 16px;
-  margin-top: -50px;
-  color: white;
-  font-weight: bold;
-  font-size: 20px;
-  border-radius: 0 3px 3px 0;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Position the "next button" to the right */
-.next {
-  right: 0;
-  border-radius: 3px 0 0 3px;
-}
-
-/* On hover, add a black background color with a little bit see-through */
-.prev:hover,
-.next:hover {
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
 /* Number text (1/3 etc) */
 .numbertext {
   color: #f2f2f2;
@@ -166,18 +216,16 @@
   top: 0;
 }
 
+/* thumbnails row, handled by Swiper */
 .slider_content {
-  display: flex;
   width: 100%;
-  gap: 10px;
-  justify-content: space-between;
 }
 
-/* Six columns side by side */
+/* fixed card width so cards don't shrink on small screens; Swiper makes the row swipeable.
+   From 1200px up, Swiper sets the width itself so all cards share the row */
 .column {
-  float: left;
-  /* width: 16.66%; */
-  width: calc((100% - (4% * 4))/5);
+  width: 220px;
+  height: auto;
   border-radius: 8px;
   border: 0.5px solid rgba(0, 0, 0, 0.50);
   background: rgba(255, 242, 242, 0.40);
@@ -187,7 +235,7 @@
   gap: 12px;
 }
 .slider_content_image {
-  height: 5vw;
+  aspect-ratio: 16 / 7;
   position: relative;
   overflow: hidden;
   border-radius: 4px;
@@ -217,20 +265,20 @@
 
 /* Active state for animation */
 .slider_content_image:has(.active) .color_filter {
-  animation-name: move;
+  animation-name: colorize;
   animation-duration: 4s;
-  animation-timing-function: ease-in-out;
+  animation-timing-function: linear;
   animation-fill-mode: forwards;
-  /* opacity: 0;  */
 }
 
-/* Movement animation */
-@keyframes move {
+/* the gray layer stays in place and gets cut away from left to right,
+   so the same image gradually turns colored */
+@keyframes colorize {
   from {
-    left: 0%; /* Starting point */
+    clip-path: inset(0 0 0 0);
   }
   to {
-    left: 100%; /* End position (container width - box width) */
+    clip-path: inset(0 100% 0 0);
   }
 }
 

@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import Swiper from 'swiper';
 
 @Component({
   selector: 'app-home',
@@ -7,7 +8,10 @@ import { CommonModule } from '@angular/common';
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent  {
+export class HomeComponent implements AfterViewInit, OnDestroy {
+
+  @ViewChild('thumbsSwiper') private thumbsSwiperEl!: ElementRef<HTMLElement>;
+  private thumbsSwiper?: Swiper;
 
   // slides = [
   //   {
@@ -149,12 +153,38 @@ export class HomeComponent  {
 
 currentSlideIndex = 0;
 
+ngAfterViewInit(): void {
+  this.thumbsSwiper = new Swiper(this.thumbsSwiperEl.nativeElement, {
+    // cards keep a fixed width (set in CSS) and the row becomes swipeable
+    slidesPerView: 'auto',
+    spaceBetween: 16,
+    grabCursor: true,
+    breakpoints: {
+      // wide screens: all cards fit, so share the row equally like before
+      1200: { slidesPerView: this.slides.length, spaceBetween: 24 },
+    },
+  });
+}
+
+ngOnDestroy(): void {
+  this.thumbsSwiper?.destroy();
+}
+
 changeSlide(direction: number): void {
-  this.currentSlideIndex = (this.currentSlideIndex + direction + this.slides.length) % this.slides.length;
+  this.goToSlide((this.currentSlideIndex + direction + this.slides.length) % this.slides.length);
 }
 
 goToSlide(index: number): void {
   this.currentSlideIndex = index;
+  // keep the active card visible on small screens
+  this.thumbsSwiper?.slideTo(index);
+}
+
+// when the active thumbnail finishes its animation, move to the next slide (loops forever)
+onThumbnailAnimationEnd(index: number): void {
+  if (index === this.currentSlideIndex) {
+    this.changeSlide(1);
+  }
 }
 
 
